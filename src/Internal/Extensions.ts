@@ -94,51 +94,51 @@ export class Extensions {
         }
     }
 
-    static getInnerText(node: ReturnType<Cheerio.CheerioAPI['load']>): string {
+    static getInnerText(node: ReturnType<typeof cheerio.load>): string {
         return node?.text?.()?.trim() ?? '';
     }
 
-    static getAttributeValue(node: ReturnType<Cheerio.CheerioAPI['load']>, attributeName: string): string {
+    static getAttributeValue(node: ReturnType<typeof cheerio.load>, attributeName: string): string {
         return node?.attr?.(attributeName)?.trim() ?? '';
     }
 
-    static selectSingleNodeTextOrDefault($: Cheerio.CheerioAPI, xpath: string): string | undefined {
-        const result = Cheerio(xpath).first();
+    static selectSingleNodeTextOrDefault($: typeof cheerio, xpath: string): string | undefined {
+        const result = cheerio(xpath).first();
         return this.getInnerText(result);
     }
 
-    static selectSingleNodeAttributeOrDefault($: Cheerio.CheerioAPI, xpath: string, attributeName: string): string | undefined {
-        const result = Cheerio(xpath).first();
+    static selectSingleNodeAttributeOrDefault($: typeof cheerio, xpath: string, attributeName: string): string | undefined {
+        const result = cheerio(xpath).first();
         return this.getAttributeValue(result, attributeName);
     }
 
-    static selectSingleNodeText($: Cheerio.CheerioAPI, xpath: string): string {
+    static selectSingleNodeText($: typeof cheerio, xpath: string): string {
         const result = this.selectSingleNodeTextOrDefault($, xpath);
         if (!result) throw new Error(`Could not find node: "${xpath}"`);
         return result;
     }
 
-    static selectSingleNodeAttribute($: Cheerio.CheerioAPI, xpath: string, attributeName: string): string {
+    static selectSingleNodeAttribute($: typeof cheerio, xpath: string, attributeName: string): string {
         const result = this.selectSingleNodeAttributeOrDefault($, xpath, attributeName);
         if (!result) throw new Error(`Could not find node or attribute: "${xpath}" - "${attributeName}"`);
         return result;
     }
 
-    static any(cheerio: Cheerio.CheerioAPI, xpath: string): boolean {
-        return Cheerio(xpath).length > 0;
+    static any($: ReturnType<typeof cheerio.load>, xpath: string): boolean {
+        return $(xpath).length > 0;
     }
 
-    static select<T>(cheerio: Cheerio.CheerioAPI, xpath: string, selector: (element: ReturnType<Cheerio.CheerioAPI['load']>) => T): T[] {
-        const nodes = Cheerio(xpath);
-        return nodes.map((_, element) => selector(Cheerio(element))).get();
+    static select<T>($: ReturnType<typeof cheerio.load>, xpath: string, selector: (element: ReturnType<typeof cheerio.load>) => T): T[] {
+        const nodes = $(xpath);
+        return nodes.map((_, element) => selector($(element))).get();
     }
 
-    static map<TKey, TValue>(cheerio: Cheerio.CheerioAPI, xpath: string, selector: (element: ReturnType<Cheerio.CheerioAPI['load']>) => [TKey, TValue]): Map<TKey, TValue> {
-        const nodes = Cheerio(xpath);
+    static map<TKey, TValue>($: ReturnType<typeof cheerio.load>, xpath: string, selector: (element: ReturnType<typeof cheerio.load>) => [TKey, TValue]): Map<TKey, TValue> {
+        const nodes = $(xpath);
         const result = new Map<TKey, TValue>();
 
         nodes.each((_, element) => {
-            const [key, value] = selector(Cheerio(element));
+            const [key, value] = selector($(element));
             result.set(key, value);
         });
 

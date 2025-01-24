@@ -5,7 +5,8 @@ const Hoster_1 = require("../enums/Hoster");
 const Language_1 = require("../enums/Language");
 const MediaLanguage_1 = require("../models/MediaLanguage");
 //import { CheerioAPI, Element, AnyNode, Cheerio } from 'cheerio'
-const Cheerio = require("cheerio");
+//import * as Cheerio from "cheerio";
+const cheerio = require('cheerio');
 class Extensions {
     static addRelativePath(baseUrl, relativePath) {
         return `${baseUrl.trim()}/${relativePath.trim()}`;
@@ -85,11 +86,11 @@ class Extensions {
         return node?.attr?.(attributeName)?.trim() ?? '';
     }
     static selectSingleNodeTextOrDefault($, xpath) {
-        const result = Cheerio(xpath).first();
+        const result = cheerio(xpath).first();
         return this.getInnerText(result);
     }
     static selectSingleNodeAttributeOrDefault($, xpath, attributeName) {
-        const result = Cheerio(xpath).first();
+        const result = cheerio(xpath).first();
         return this.getAttributeValue(result, attributeName);
     }
     static selectSingleNodeText($, xpath) {
@@ -104,18 +105,18 @@ class Extensions {
             throw new Error(`Could not find node or attribute: "${xpath}" - "${attributeName}"`);
         return result;
     }
-    static any(cheerio, xpath) {
-        return Cheerio(xpath).length > 0;
+    static any($, xpath) {
+        return $(xpath).length > 0;
     }
-    static select(cheerio, xpath, selector) {
-        const nodes = Cheerio(xpath);
-        return nodes.map((_, element) => selector(Cheerio(element))).get();
+    static select($, xpath, selector) {
+        const nodes = $(xpath);
+        return nodes.map((_, element) => selector($(element))).get();
     }
-    static map(cheerio, xpath, selector) {
-        const nodes = Cheerio(xpath);
+    static map($, xpath, selector) {
+        const nodes = $(xpath);
         const result = new Map();
         nodes.each((_, element) => {
-            const [key, value] = selector(Cheerio(element));
+            const [key, value] = selector($(element));
             result.set(key, value);
         });
         return result;
