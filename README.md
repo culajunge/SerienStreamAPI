@@ -8,14 +8,14 @@ Original SerienStreamAPI .net: https://github.com/IcySnex/SerienStreamAPI
 
 ## Installation
 ```bash
-npm install @yourusername/serienstream-api
+npm install serienstreamapi
 ```
 
 ## Usage
 ### Initialize Client
 
 ```bash
-import { SerienStreamClient } from '@yourusername/serienstream-api';
+import { SerienStreamClient } from 'serienstreamapi';
 
 const client = new SerienStreamClient("https://aniworld.to/", "animes", false);
 ```
