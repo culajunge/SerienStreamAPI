@@ -1,10 +1,8 @@
-import * as Cheerio from "cheerio";
 import { RequestHelper } from '../internal/RequestHelper'
 import { Series } from '../models/Series'
 import { Rating } from '../models/Rating'
 import { SeriesNotFoundException } from '../exceptions/SeriesNotFoundException'
 import { Extensions } from '../internal/Extensions'
-import CheerioAPI = cheerio.CheerioAPI;
 import {VideoDetails} from "../Models/VideoDetails";
 import {VideoStream} from "../Models/VideoStream";
 import {MediaLanguage} from "../Models/MediaLanguage";
@@ -13,8 +11,8 @@ import {SeasonNotFoundException} from "../Exceptions/SeasonNotFoundException";
 import {MovieNotFoundException} from "../Exceptions/MovieNotFoundException";
 import {EpisodeNotFoundException} from "../Exceptions/EpisodeNotFoundException";
 import {Media} from "../Models/Media";
-import {load} from "cheerio";
 import { Logger } from '../internal/RequestHelper';
+const cheerio = require('cheerio');
 
 export class SerienStreamClient {
     private readonly hostUrl: string;
@@ -39,7 +37,7 @@ export class SerienStreamClient {
     private async getHtmlRoot(path: string, signal?: AbortSignal): Promise<cheerio.Root> {
         this.logger?.logInformation("[SerienStreamClient-GetHtmlRootAsync] Getting HTML document: %s...", path);
         const webContent = await this.requestHelper.getAndValidateAsync(this.hostUrl, path, undefined, signal);
-        return load(webContent);
+        return cheerio.load(webContent);
     }
 
     public async getSeries(title: string, signal?: AbortSignal): Promise<Series> {
@@ -100,12 +98,12 @@ export class SerienStreamClient {
         // Parse HTML document into series info
         this.logger?.logInformation("[SerienStreamClient-GetEpisodesAsync] Parsing HTML document into media info list: %s, %s...", title, season);
 
-        return Extensions.select($, "table.seasonEpisodesList tbody tr", node => new Media(
+        return Extensions.select($, "table.seasonEpisodesList tbody tr", (node: ReturnType<typeof cheerio.load> & cheerio.Cheerio) => new Media(
             parseInt(node.find("td:first-child a").text().slice(6)),
             node.find("td:nth-child(2) a strong").text(),
             node.find("td:nth-child(2) a span").text(),
-            Extensions.select($, "td:nth-child(3) i", child => Extensions.toHoster(child.attr("title") || "")),
-            Extensions.select($, "td:nth-child(4) img", child => Extensions.toMediaLanguage(child.attr("src") || ""))
+            Extensions.select($, "td:nth-child(3) i", (child: ReturnType<typeof cheerio.load> & cheerio.Cheerio) => Extensions.toHoster(child.attr("title") || "")),
+            Extensions.select($, "td:nth-child(4) img", (child: ReturnType<typeof cheerio.load> & cheerio.Cheerio) => Extensions.toMediaLanguage(child.attr("src") || ""))
         ));
     }
 
@@ -131,7 +129,7 @@ export class SerienStreamClient {
         // Parse HTML document into series info
         this.logger?.logInformation("[SerienStreamClient-GetEpisodeVideoInfoAsync] Parsing HTML document into video info: %s, %s, %s...", title, number, season);
 
-        const languageMapping = Extensions.map($, "div.changeLanguageBox img", node => [
+        const languageMapping = Extensions.map($, "div.changeLanguageBox img", (node: ReturnType<typeof cheerio.load> & cheerio.Cheerio) => [
             parseInt(node.attr("data-lang-key") || "0"),
             Extensions.toMediaLanguage(node.attr("src") || "")
         ]);
@@ -141,12 +139,13 @@ export class SerienStreamClient {
             $("div.hosterSiteTitle h2 span.episodeGermanTitle").text(),
             $("div.hosterSiteTitle h2 small.episodeEnglishTitle").text(),
             $("div.hosterSiteTitle p[itemprop='description']").text(),
-            Extensions.select($, "ul.row li", node => new VideoStream(
-                this.hostUrl + "/" + (node.find("a.watchEpisode").attr("href") || "").trim('/'),
-                Extensions.toHoster(node.find("h4").text()),
+            Extensions.select($, "ul.row li", (node: ReturnType<typeof cheerio.load> & cheerio.Cheerio) => new VideoStream(
+                `${this.hostUrl}/${(node.find("a.watchEpisode").attr("href") || "").trim()}`,
+        Extensions.toHoster(node.find("h4").text()),
                 languageMapping.get(parseInt(node.attr("data-lang-key") || "0")) || new MediaLanguage(Language.Unknown, null)
             ))
         );
+
     }
 
     public getMovieVideoInfo(title: string, number: number, signal?: AbortSignal): Promise<VideoDetails> {
